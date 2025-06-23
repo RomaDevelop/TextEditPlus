@@ -1,11 +1,12 @@
-#include "widget.h"
+#include "widgetPrintStructureObject.h"
 
 #include <QApplication>
+#include <QLibrary>
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
-    Widget w;
-    w.show();
-    return a.exec();
+	QApplication a(argc, argv);
+	WidgetPrintStructureObjects w;
+	w.show();
+	return a.exec();
 }

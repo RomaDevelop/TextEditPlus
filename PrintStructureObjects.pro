@@ -1,4 +1,4 @@
-QT       += core gui widgets
+QT  += core gui widgets
 
 CONFIG += c++17
 
@@ -8,12 +8,25 @@ CONFIG += c++17
 
 SOURCES += \
     main.cpp \
-    widget.cpp
+    textEditPlus.cpp \
+    widgetPrintStructureObject.cpp
 
 HEADERS += \
-    widget.h
+    MyQShortings.h \
+    textEditPlus.h \
+    widgetPrintStructureObject.h
+
+#    win32:CONFIG(release, debug|release): LIBS += -L$$PWD/./ -lscintilla
+#    else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/./ -lscintilla
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/./ -lScintillaEdit5
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/./ -lScintillaEdit5
+else:unix: LIBS += -L$$PWD/./ -lScintillaEdit5
+
+INCLUDEPATH += $$PWD/.
+DEPENDPATH += $$PWD/.
