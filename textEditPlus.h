@@ -21,11 +21,17 @@ class TextEditPlus : public QTextEdit
 
 	void manyStrokesAsOne();
 
-	int lineOfCursor(QTextCursor& toFind);
+	int cursorAtLine(QTextCursor& toFind);
 
 	void setCursorToRectsLeft(const QRect& fromWhich, QTextCursor& whichToMove);
+
+	QTextCursor m_startCursor;
+	QTextCursor m_endCursor;
+
 	QPoint m_startPos; // Начальная позиция в пикселах.
 	QPoint m_endPos;   // Конечная позиция в пикселах.
+	QRect m_rectInPixels;
+
 	void updateRectangle();
 private slots:
 	void SlotToggleLineVisibility();

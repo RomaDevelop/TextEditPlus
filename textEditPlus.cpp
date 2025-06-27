@@ -17,30 +17,33 @@ void TextEditPlus::SlotToggleLineVisibility()
 
 void TextEditPlus::updateRectangle()
 {
-	if (!cursors.empty())
-	{
-		int lastCursorOrdinal = cursors.size() - 1;
+//	if (!cursors.empty())
+//	{
+//		int lastCursorOrdinal = cursors.size() - 1;
 
-		//Pass second QPoint coordinate
-		if (cursors.front().columnNumber() > cursors.back().columnNumber())
-		{
-			m_endPos = {cursorRect(cursors.front()).right() + 1, cursorRect(cursors[lastCursorOrdinal]).bottom() + 1}; // Обновляем конечную позицию для отрисовки
-																													//прямоугольника. Правая грань - от первого курсора,
-																													//нижняя - от последнего.
-			qdbg << "First cursor column > last cursor column";
-			qdbg << "Second before last cursor's bottom" << cursorRect(cursors[lastCursorOrdinal]).bottom() + 1 << "Rectangle y()" << m_endPos.y();
-		}
-		else
-		{
-			m_endPos = cursorRect(cursors[lastCursorOrdinal]).bottomRight();
-			qdbg << "First cursor column <= last cursor column";
-			qdbg << "Second before last cursor's bottom" << cursorRect(cursors[lastCursorOrdinal]).bottom() + 1 << "Rectangle y()" << m_endPos.y();
+//		//Pass second QPoint coordinate
+//		if (cursors.front().columnNumber() > cursors.back().columnNumber())
+//		{
+//			m_endPos = {cursorRect(cursors.front()).right() + 1, cursorRect(cursors[lastCursorOrdinal]).bottom() + 1}; // Обновляем конечную позицию для отрисовки
+//																													//прямоугольника. Правая грань - от первого курсора,
+//																													//нижняя - от последнего.
+//			qdbg << "First cursor column > last cursor column";
+//			qdbg << "Second before last cursor's bottom" << cursorRect(cursors[lastCursorOrdinal]).bottom() + 1 << "Rectangle y()" << m_endPos.y();
+//		}
+//		else
+//		{
+//			m_endPos = cursorRect(cursors[lastCursorOrdinal]).bottomRight();
+//			qdbg << "First cursor column <= last cursor column";
+//			qdbg << "Second before last cursor's bottom" << cursorRect(cursors[lastCursorOrdinal]).bottom() + 1 << "Rectangle y()" << m_endPos.y();
 
-		}
+//		}
 
-		update(); // Перерисовываем виджет
-	}
-	else return;
+//		update(); // Перерисовываем виджет
+//	}
+//	else return;
+	m_endPos = cursorRect(m_endCursor).bottomRight();
+	update();
+
 }
 
 TextEditPlus::TextEditPlus(QTextEdit* parent): QTextEdit(parent), m_visible(false) // Object's constructor.
@@ -58,7 +61,7 @@ TextEditPlus::TextEditPlus(QTextEdit* parent): QTextEdit(parent), m_visible(fals
 						 "Завершён ежегодный съезд эрудированных школьников, мечтающих глубоко проникнуть в тайны физических явлений \n"
 						 "Завершён ежегодный съезд эрудированных школьников, мечтающих глубоко проникнуть в тайны физических явлений \n"
 						 "Завершён ежегодный съезд эрудированных школьников, мечтающих \n"
-						 "Завершён ежегодный съезд эрудированных школьников, мечтающих глубоко проникнуть в тайны физических явлений \n"
+						 "Завершён ежегодный съезд эрудированных школьников, мечтающих \n"
 						 "Завершён ежегодный съезд эрудированных школьников, мечтающих глубоко проникнуть в тайны физических явлений \n"
 						 "Завершён ежегодный съезд эрудированных школьников, мечтающих глубоко проникнуть в тайны физических явлений \n"
 						 "Завершён ежегодный съезд эрудированных школьников, мечтающих глубоко проникнуть в тайны физических явлений \n"
@@ -72,37 +75,44 @@ TextEditPlus::TextEditPlus(QTextEdit* parent): QTextEdit(parent), m_visible(fals
 
 	m_blinkingTimer = new QTimer(this); // таймер для мигания
 	connect(m_blinkingTimer, &QTimer::timeout, this, &TextEditPlus::SlotToggleLineVisibility);
-	m_blinkingTimer->start(530);
 }
 
 void TextEditPlus::paintEvent(QPaintEvent *event)
 {
 	QTextEdit::paintEvent(event);
 
-	if (m_visible)
-	{
-		QPainter painter(viewport());
-		painter.setPen(Qt::black); // Цвет курсора
-		if (!cursors.empty())
-		{
-			auto carretRectOrigin = cursorRect(cursors[0]);
-			auto carretRectEnd = cursorRect(cursors[cursors.size() - 1]);
-			if (cursors.front().columnNumber() <= cursors.back().columnNumber())
-				painter.drawLine(carretRectEnd.left(), carretRectEnd.y() + fontMetrics().height(), carretRectEnd.left(), carretRectOrigin.y()); // Рисует вертикальную
-																																				//линию.
-			else
-				painter.drawLine(carretRectOrigin.left(),  carretRectOrigin.y(), carretRectOrigin.left(), carretRectEnd.y());
-		}
-	}
-	if (m_startPos != QPoint() && m_endPos != QPoint())
+	if(m_startPos != QPoint() && m_endPos != QPoint())
 	{
 		QPainter painter(viewport());
 		painter.setPen(Qt::NoPen); // Без обводки
 		painter.setBrush(QColor(163, 163, 163, 122)); // Полупрозрачный серый цвет
-		QRect rect(m_startPos, m_endPos);
-		rect = rect.normalized(); // Нормализуем прямоугольник
-		painter.drawRect(rect); // Рисуем прямоугольник
+		m_rectInPixels = {m_startPos, m_endPos};
+		m_rectInPixels = m_rectInPixels.normalized(); // Нормализуем прямоугольник
+		painter.drawRect(m_rectInPixels); // Рисуем прямоугольник
 	}
+	if(m_visible)
+	{
+		QPainter painter(viewport());
+		painter.setPen(Qt::black); // Цвет курсора
+		auto startCursorRect = cursorRect(m_startCursor);
+		auto endCursorRect = cursorRect(m_endCursor);
+		if(startCursorRect.center().x() <= endCursorRect.center().x())
+			painter.drawLine(endCursorRect.center().x(), startCursorRect.top(), endCursorRect.center().x(), endCursorRect.bottom()/* + fontMetrics().height()*/);
+		else
+			painter.drawLine(endCursorRect.left(), endCursorRect.bottom(), endCursorRect.left(), startCursorRect.top()/* + fontMetrics().height()*/);
+//		painter.drawLine(cursorRect(m_startCursor).topRight(), cursorRect(m_endCursor).bottomRight());
+//		if (!cursors.empty())
+//		{
+//			auto carretRectOrigin = cursorRect(cursors[0]);
+//			auto carretRectEnd = cursorRect(cursors[cursors.size() - 1]);
+//			if (cursors.front().columnNumber() <= cursors.back().columnNumber())
+//				painter.drawLine(carretRectEnd.left(), carretRectEnd.y() + fontMetrics().height(), carretRectEnd.left(), carretRectOrigin.y()); // Рисует вертикальную
+//																																				//линию.
+//			else
+//				painter.drawLine(carretRectOrigin.left(),  carretRectOrigin.y(), carretRectOrigin.left(), carretRectEnd.y());
+//		}
+	}
+
 
 }
 
@@ -113,39 +123,63 @@ void TextEditPlus::mousePressEvent(QMouseEvent *event)
 	m_startPos = QPoint(); // Сбрасывает начальную позицию
 	m_endPos = QPoint();   // Сбрасывает конечную позицию
 
-	if (!isRectangularSelection)
+	if (isRectangularSelection == false)
 	{
+		qdbg << "\tisRectangularSelection value 0" << isRectangularSelection;
 		if((event->modifiers() & Qt::AltModifier) && (event->buttons() & Qt::LeftButton))
 		{
-			auto mediumCursor = cursorForPosition(event->pos());
+			m_startCursor = cursorForPosition(event->pos());
 
 			//Making notes
-			m_charsAndLines.setLeft(mediumCursor.columnNumber());
-			m_charsAndLines.setTop(lineOfCursor(mediumCursor));
+			m_charsAndLines.setCoords(m_startCursor.columnNumber(), cursorAtLine(m_startCursor), m_startCursor.columnNumber(), cursorAtLine(m_startCursor));
+//			m_charsAndLines.setTop(lineOfCursor(m_startCursor));
+			qdbg << "\tisRectangularSelection value 1" << isRectangularSelection;
+
+
 
 			//Pass first coordinate
-			m_startPos = cursorRect(mediumCursor).topLeft(); // Запоминает начальную позицию для отрисовки прямоугольника.
+			m_startPos = cursorRect(m_startCursor).topLeft(); // Запоминает начальную позицию для отрисовки прямоугольника.
 			isRectangularSelection = true;
+						qdbg << "\tisRectangularSelection value 2.5" << isRectangularSelection;
+			m_blinkingTimer->start(530);
 			return;
 		}
 		else
 		{
+			qdbg << "\tisRectangularSelection value 2" << isRectangularSelection;
 			m_visible = false;
-			setReadOnly(false);								// от включенного при валидном QRect'е
+			m_blinkingTimer->stop();
+			setReadOnly(false);						// от включенного при валидном QRect'е
+
 
 			QTextEdit::mousePressEvent(event);
 			return;
 		}
 	}
+	else
+	{
+//		qdbg << "\tisRectangularSelection value 3" << isRectangularSelection;
+//		isRectangularSelection = false;
+//		m_visible = false;
+//		m_blinkingTimer->stop();
+//		setReadOnly(false);						// от включенного при валидном QRect'е
+//		qdbg << "\tisRectangularSelection value 2" << isRectangularSelection;
+
+//		QTextEdit::mousePressEvent(event);
+//		return;
+	}
+
 }
 
 void TextEditPlus::mouseMoveEvent(QMouseEvent *event)
 {
-	if (isRectangularSelection && (event->buttons() & Qt::LeftButton))
+	if (isRectangularSelection == true && (event->buttons() == Qt::LeftButton))
 	{
-		auto mediumCursor = cursorForPosition(event->pos());
-		m_charsAndLines.setRight(mediumCursor.columnNumber());
-		m_charsAndLines.setBottom(lineOfCursor(mediumCursor));
+		m_endCursor = cursorForPosition(event->pos());
+		m_charsAndLines.setCoords(m_startCursor.columnNumber(), cursorAtLine(m_startCursor), m_endCursor.columnNumber(), cursorAtLine(m_endCursor));
+
+//		m_charsAndLines.setRight(m_endCursor.columnNumber());
+//		m_charsAndLines.setBottom(lineOfCursor(m_endCursor));
 
 		if(m_charsAndLines.isValid())
 		{
@@ -164,7 +198,7 @@ void TextEditPlus::mouseMoveEvent(QMouseEvent *event)
 void TextEditPlus::mouseReleaseEvent(QMouseEvent *event)
 {
 	qdbg << "mouseReleaseEvent";
-	if (isRectangularSelection && (event->button() == Qt::LeftButton))
+	if (isRectangularSelection == true && (event->button() == Qt::LeftButton))
 	{
 //		update(); // Перерисовываем виджет
 	}
@@ -185,7 +219,7 @@ void TextEditPlus::mouseReleaseEvent(QMouseEvent *event)
 //	cursorEditBlocker.endEditBlock();
 //}
 
-int TextEditPlus::lineOfCursor(QTextCursor& toFind)
+int TextEditPlus::cursorAtLine(QTextCursor& toFind)
 {
 	QTextBlock block = toFind.block();
 
@@ -205,7 +239,7 @@ int TextEditPlus::lineOfCursor(QTextCursor& toFind)
 void TextEditPlus::setCursorToRectsLeft(const QRect& charsAndLines, QTextCursor& whichToMove)
 {
 	whichToMove.movePosition(QTextCursor::StartOfLine);
-	whichToMove.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, charsAndLines.left());
+	whichToMove.movePosition(QTextCursor::NextCharacter, QTextCursor::MoveAnchor, charsAndLines.left());
 }
 
 void TextEditPlus::RectSelection(const QRect &charsAndLines)
@@ -233,9 +267,6 @@ void TextEditPlus::RectSelection(const QRect &charsAndLines)
 	this->setTextCursor(c);
 
 	int cursorsCount = charsAndLines.height();
-	QTextCharFormat format;
-	format.setBackground(QColor(0, 120, 215));
-	format.setForeground(Qt::white);
 	for(int i = 1; i <= cursorsCount; i++)
 	{
 		auto& curCursorRef = cursors.emplace_back(QTextCursor());
@@ -266,7 +297,7 @@ void TextEditPlus::RectSelection(const QRect &charsAndLines)
 		else
 		{
 			setCursorToRectsLeft(charsAndLines, curCursorRef);
-			curCursorRef.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, charsAndLines.width());
+			curCursorRef.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, charsAndLines.width());
 		}
 
 //		curCursorRef.setCharFormat(format);
@@ -282,7 +313,7 @@ void TextEditPlus::RectSelection(const QRect &charsAndLines)
 void TextEditPlus::keyPressEvent(QKeyEvent *event)
 {
 	qdbg << "keyPressEvent";
-	if (!isRectangularSelection)
+	if (isRectangularSelection == false)
 	{
 		QTextEdit::keyPressEvent(event);
 		qdbg << "\tPierced";
@@ -326,10 +357,12 @@ void TextEditPlus::keyPressEvent(QKeyEvent *event)
 				if (event->key() == Qt::UpArrow || event->key() == Qt::LeftArrow || event->key() == Qt::DownArrow || event->key() == Qt::RightArrow ||
 						event->modifiers() & Qt::AltModifier || event->modifiers() & Qt::ControlModifier || event->modifiers() & Qt::ShiftModifier)
 				{
+					qdbg << "\tArrow or modifier" << event->key();
 					QTextEdit::keyPressEvent(event);
 				}
 				else
 				{
+					qdbg << "\tDefault else" << event->key();
 					for (auto& cursor:cursors)
 					{
 						cursor.insertText(event->text());
