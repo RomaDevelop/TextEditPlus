@@ -30,6 +30,7 @@ class TextEditPlus : public QTextEdit
 
 	QPoint m_startPos; // Начальная позиция в пикселах.
 	QPoint m_endPos;   // Конечная позиция в пикселах.
+	QRect m_charsAndLines;				// the amount of characters and lines of text, not pixel height and width.
 	QRect m_rectInPixels;
 
 	void updateRectangle();
@@ -39,7 +40,6 @@ public:
 	explicit TextEditPlus(QTextEdit *parent = nullptr);
 	void RectSelection(const QRect& charsAndLines);
 	bool isRectangularSelection = false;
-	QRect m_charsAndLines;				// the amount of characters and lines of text, not pixel height and width.
 
 
 protected:

@@ -99,7 +99,7 @@ void TextEditPlus::paintEvent(QPaintEvent *event)
 		if(startCursorRect.center().x() <= endCursorRect.center().x())
 			painter.drawLine(endCursorRect.center().x(), startCursorRect.top(), endCursorRect.center().x(), endCursorRect.bottom()/* + fontMetrics().height()*/);
 		else
-			painter.drawLine(endCursorRect.left(), endCursorRect.bottom(), endCursorRect.left(), startCursorRect.top()/* + fontMetrics().height()*/);
+			painter.drawLine(endCursorRect.left(), endCursorRect.bottom() + 1, endCursorRect.left(), startCursorRect.top()/* + fontMetrics().height()*/);
 //		painter.drawLine(cursorRect(m_startCursor).topRight(), cursorRect(m_endCursor).bottomRight());
 //		if (!cursors.empty())
 //		{
@@ -128,10 +128,13 @@ void TextEditPlus::mousePressEvent(QMouseEvent *event)
 		qdbg << "\tisRectangularSelection value 0" << isRectangularSelection;
 		if((event->modifiers() & Qt::AltModifier) && (event->buttons() & Qt::LeftButton))
 		{
+//			cursors.clear();
 			m_startCursor = cursorForPosition(event->pos());
 
 			//Making notes
 			m_charsAndLines.setCoords(m_startCursor.columnNumber(), cursorAtLine(m_startCursor), m_startCursor.columnNumber(), cursorAtLine(m_startCursor));
+//			cursors.emplace_back(m_startCursor);
+
 //			m_charsAndLines.setTop(lineOfCursor(m_startCursor));
 			qdbg << "\tisRectangularSelection value 1" << isRectangularSelection;
 
@@ -140,7 +143,7 @@ void TextEditPlus::mousePressEvent(QMouseEvent *event)
 			//Pass first coordinate
 			m_startPos = cursorRect(m_startCursor).topLeft(); // Запоминает начальную позицию для отрисовки прямоугольника.
 			isRectangularSelection = true;
-						qdbg << "\tisRectangularSelection value 2.5" << isRectangularSelection;
+			qdbg << "\tisRectangularSelection value 2.5" << isRectangularSelection;
 			m_blinkingTimer->start(530);
 			return;
 		}
@@ -176,8 +179,9 @@ void TextEditPlus::mouseMoveEvent(QMouseEvent *event)
 	if (isRectangularSelection == true && (event->buttons() == Qt::LeftButton))
 	{
 		m_endCursor = cursorForPosition(event->pos());
+//		cursors.push_back(m_endCursor);
 		m_charsAndLines.setCoords(m_startCursor.columnNumber(), cursorAtLine(m_startCursor), m_endCursor.columnNumber(), cursorAtLine(m_endCursor));
-
+		qdbg << "Cursors size" << cursors.size();
 //		m_charsAndLines.setRight(m_endCursor.columnNumber());
 //		m_charsAndLines.setBottom(lineOfCursor(m_endCursor));
 
@@ -186,7 +190,7 @@ void TextEditPlus::mouseMoveEvent(QMouseEvent *event)
 			RectSelection(m_charsAndLines);
 			updateRectangle();
 		}
-
+		viewport()->repaint();
 	}
 	else
 	{
