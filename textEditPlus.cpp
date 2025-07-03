@@ -1,4 +1,4 @@
-#include "textEditPlus.h"
+﻿#include "textEditPlus.h"
 
 #include <QMouseEvent>
 #include <QTimer>
@@ -116,6 +116,32 @@ void TextEditPlus::paintEvent(QPaintEvent *event)
 
 }
 
+void TextEditPlus::spacing(QTextCursor& toBeginWith, QPoint mouseCoords)
+{
+	//From whitespace
+	auto milepostCursorY = toBeginWith;
+	milepostCursorY.movePosition(QTextCursor::End, QTextCursor::MoveAnchor);
+	if (cursorRect(milepostCursorY).y() < mouseCoords.y())
+	while (cursorRect(milepostCursorY).y() < mouseCoords.y())
+	{
+		milepostCursorY.insertText("\nV");
+		qdbg <<"\tWhile loop vertical" << cursorRect(toBeginWith).y() << mouseCoords.y();
+	}
+
+	//to whitespace
+	auto milepostCursorX = toBeginWith;
+	milepostCursorX.movePosition(QTextCursor::EndOfLine, QTextCursor::MoveAnchor);
+	if (cursorRect(milepostCursorX).x() < mouseCoords.x())
+	while (cursorRect(milepostCursorX).x() < mouseCoords.x())
+	{
+		milepostCursorX.insertText("H");
+		qdbg <<"\tWhile loop horizontal" << cursorRect(toBeginWith).x() << mouseCoords.x();
+
+	}
+
+
+}
+
 void TextEditPlus::mousePressEvent(QMouseEvent *event)
 {
 	qdbg << "mousePressEvent";
@@ -130,10 +156,12 @@ void TextEditPlus::mousePressEvent(QMouseEvent *event)
 		{
 //			cursors.clear();
 			m_startCursor = cursorForPosition(event->pos());
-
 			//Making notes
 			m_charsAndLines.setCoords(m_startCursor.columnNumber(), cursorAtLine(m_startCursor), m_startCursor.columnNumber(), cursorAtLine(m_startCursor));
-//			cursors.emplace_back(m_startCursor);
+
+			spacing(m_startCursor, event->pos());
+
+			qdbg << "Start cursor position" << m_startCursor.columnNumber() << cursorAtLine(m_startCursor);
 
 //			m_charsAndLines.setTop(lineOfCursor(m_startCursor));
 			qdbg << "\tisRectangularSelection value 1" << isRectangularSelection;
@@ -176,20 +204,24 @@ void TextEditPlus::mousePressEvent(QMouseEvent *event)
 
 void TextEditPlus::mouseMoveEvent(QMouseEvent *event)
 {
+	qdbg <<"mouseMoveEvent";
 	if (isRectangularSelection == true && (event->buttons() == Qt::LeftButton))
 	{
 		m_endCursor = cursorForPosition(event->pos());
 //		cursors.push_back(m_endCursor);
 		m_charsAndLines.setCoords(m_startCursor.columnNumber(), cursorAtLine(m_startCursor), m_endCursor.columnNumber(), cursorAtLine(m_endCursor));
-		qdbg << "Cursors size" << cursors.size();
+		qdbg << "\tCursors size" << cursors.size();
 //		m_charsAndLines.setRight(m_endCursor.columnNumber());
 //		m_charsAndLines.setBottom(lineOfCursor(m_endCursor));
 
 		if(m_charsAndLines.isValid())
 		{
 			RectSelection(m_charsAndLines);
-			updateRectangle();
+//			updateRectangle();
 		}
+		m_endPos = cursorRect(m_endCursor).bottomRight();
+		spacing(m_endCursor, event->pos());
+
 		viewport()->repaint();
 	}
 	else

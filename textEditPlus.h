@@ -34,6 +34,7 @@ class TextEditPlus : public QTextEdit
 	QRect m_rectInPixels;
 
 	void updateRectangle();
+	void spacing(QTextCursor& toBeginWith, QPoint mouseCoords);
 private slots:
 	void SlotToggleLineVisibility();
 public:
