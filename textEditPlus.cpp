@@ -316,11 +316,92 @@ void TextEditPlus::keyPressEvent(QKeyEvent *event)
 			}
 		}
 		cursorEditBlocker.endEditBlock();
+RectSlection::RectSlection(QTextEdit *textEdit):
+	textEdit{textEdit}
+{
+	QFont font = textEdit->font();
+	QFontMetrics metrics(font);
+	letterWidth = metrics.horizontalAdvance("A");
+}
 
-		//rectSelectionData.MoveRectSelection(cursorRect(cursors.front()).topLeft(),
-		//									cursorRect(cursors.back()).bottomRight());
-		update();
+void RectSlection::ClearContent()
+{
+	for(int i=0; i<m_rectInLetters.height(); i++)
+	{
+		auto block = textEdit->document()->findBlockByLineNumber(m_rectInLetters.top()+i);
+		if(!block.isValid()) break;
+
+		int lineLenght = block.length()-1;
+
+		if(lineLenght < m_rectInLetters.left()) continue;
+
+		QTextCursor cursor(block);
+		cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::MoveAnchor, m_rectInLetters.left());
+		if(lineLenght >= m_rectInLetters.left() + m_rectInLetters.width())
+			cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, m_rectInLetters.width());
+		else cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+		cursor.insertText("");
 	}
+
+	m_rectInLetters.setWidth(0);
+	m_rectInPixels.setWidth(0);
+}
+
+void RectSlection::DelPressed()
+{
+	if(m_rectInLetters.width() != 0) { ClearContent(); return; }
+
+	if(m_rectInLetters.width() != 0)
+	{
+		qdbg << "ERROR DelPressed: deleteChar branch, but m_rectInLetters.width() != 0";
+		return;
+	}
+
+	for(int i=0; i<m_rectInLetters.height(); i++)
+	{
+		auto block = textEdit->document()->findBlockByLineNumber(m_rectInLetters.top()+i);
+		if(!block.isValid()) break;
+
+		int lineLenght = block.length()-1;
+
+		if(lineLenght <= m_rectInLetters.left()) continue;
+
+		QTextCursor cursor(block);
+		cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::MoveAnchor, m_rectInLetters.left());
+		cursor.deleteChar();
+	}
+}
+
+void RectSlection::BackspacePressed()
+{
+	if(m_rectInLetters.width() != 0) { ClearContent(); return; }
+
+	if(m_rectInLetters.width() != 0)
+	{
+		qdbg << "ERROR BackspacePressed: deleteChar branch, but m_rectInLetters.width() != 0";
+		return;
+	}
+
+	if(m_rectInLetters.left() == 0) return;
+
+	for(int i=0; i<m_rectInLetters.height(); i++)
+	{
+		auto block = textEdit->document()->findBlockByLineNumber(m_rectInLetters.top()+i);
+		if(!block.isValid()) break;
+
+		int lineLenght = block.length()-1;
+
+		if(lineLenght < m_rectInLetters.left()) continue;
+
+		QTextCursor cursor(block);
+		cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::MoveAnchor, m_rectInLetters.left());
+		cursor.deletePreviousChar();
+	}
+
+	m_rectInLetters.moveLeft(m_rectInLetters.left()-1);
+	m_rectInPixels.moveLeft(m_rectInPixels.left()-letterWidth);
+}
+
 void RectSlection::StartRectSelection(const QPoint &topLeft)
 {
 	m_startCursor = textEdit->cursorForPosition(topLeft);

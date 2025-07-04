@@ -20,6 +20,8 @@ class RectSlection
 	QRect m_rectInLetters;
 	QRect m_rectInPixels;
 
+	char letterWidth;
+
 public:
 	RectSlection(QTextEdit *textEdit);
 
@@ -34,6 +36,10 @@ public:
 	QRect RectInPixels() { return m_rectInPixels; }
 	QRect RectInLetters() { return m_rectInLetters; }
 
+	void ClearContent();
+	void DelPressed();
+	void BackspacePressed();
+	void KeyPressed();
 
 	void StartRectSelection(const QPoint &topLeft);
 	void ContinueRectSelection(const QPoint &bottomRight);
