@@ -22,7 +22,8 @@ WidgetPrintStructureObjects::WidgetPrintStructureObjects(QWidget *parent)
     resize(800,600);
 //    Declarations
     QVBoxLayout* VerticalLayout = new QVBoxLayout;
-    QHBoxLayout* HorizontalLayout = new QHBoxLayout;
+	auto hloTop = new QHBoxLayout();
+	QHBoxLayout* hloBottom = new QHBoxLayout;
 
 	txtEditPlus  = new TextEditPlus; // Into the heap ("куча"), contrary to stack allocation. The only viable solution.
 
@@ -33,7 +34,7 @@ WidgetPrintStructureObjects::WidgetPrintStructureObjects(QWidget *parent)
     QPushButton* btnFind = new QPushButton("Найти");
     checkbox = new QCheckBox("Учитывать регистр");
 
-	auto hloTop = new QHBoxLayout();
+
 	VerticalLayout->addLayout(hloTop);
 	auto btnRect = new QPushButton(" rect 3, 3, 4, 4 ");
 	hloTop->addWidget(btnRect);
@@ -56,16 +57,33 @@ WidgetPrintStructureObjects::WidgetPrintStructureObjects(QWidget *parent)
 		txtEditPlus->setFocus();
 	});
 
+	auto btnTest = new QPushButton(" cursorsForRectSelection ");
+	hloTop->addWidget(btnTest);
+	connect(btnTest, &QPushButton::clicked, [this](){
+		auto curs = txtEditPlus->CursorsForRectSelection();
+		QTextCharFormat format;
+		format.setForeground(Qt::blue);
+		for(auto &c:curs)
+		{
+			int start = c.selectionStart(), end = c.selectionEnd();
+			auto text = c.selectedText();
+			c.insertText(text.replace(' ','#'));
+			c.setPosition(start);
+			c.setPosition(end, QTextCursor::KeepAnchor);
+			c.setCharFormat(format);
+		}
+	});
+
 	hloTop->addStretch();
 
     VerticalLayout->addWidget(txtEditPlus);
-    VerticalLayout->addLayout(HorizontalLayout);
+	VerticalLayout->addLayout(hloBottom);
 
-    HorizontalLayout->addWidget(lineEdit);
-    HorizontalLayout->addWidget(btnFind);
-    HorizontalLayout->addWidget(btnBack);
-    HorizontalLayout->addWidget(btnForth);
-    HorizontalLayout->addWidget(checkbox);
+	hloBottom->addWidget(lineEdit);
+	hloBottom->addWidget(btnFind);
+	hloBottom->addWidget(btnBack);
+	hloBottom->addWidget(btnForth);
+	hloBottom->addWidget(checkbox);
     this->setLayout(VerticalLayout);
 
 //    Signals - slots
