@@ -15,47 +15,46 @@ void TextEditPlus::SlotBlinkingTimer()
 
 TextEditPlus::TextEditPlus(QTextEdit* parent):
 	QTextEdit(parent),
-	rectSelectionData(this)
+	rectSelection(this)
 {
 	auto font = this->font();
 	font.setFamily("Courier New");
 	setFont(font);
 	setWordWrapMode(QTextOption::NoWrap);
-	//Bodycopy
-	QString pangramms = ("Подъём с затонувшего эсминца легкобьющейся древнегреческой амфоры сопряжён с техническими трудностями.\n"
-						 "Завершён ежегодный съезд эрудированных школьников, мечтающих глубоко проникнуть в тайны физических явлений \n"
-						 "Завершён ежегодный съезд эрудированных школьников, мечтающих глубоко проникнуть в тайны физических явлений \n"
-						 "Завершён ежегодный съезд эрудированных школьников, мечтающих глубоко проникнуть в тайны физических явлений \n"
-						 "Завершён ежегодный съезд эрудированных школьников, мечтающих глубоко проникнуть в тайны физических явлений \n"
-						 "Завершён ежегодный съезд эрудированных школьников, мечтающих глубоко проникнуть в тайны физических явлений \n"
-						 "Завершён ежегодный съезд эрудированных школьников, мечтающих глубоко проникнуть в тайны физических явлений \n"
-						 "Завершён ежегодный съезд эрудированных школьников, мечтающих \n"
-						 "Завершён ежегодный съезд эрудированных школьников, мечтающих \n"
-						 "Завершён ежегодный съезд эрудированных школьников, мечтающих глубоко проникнуть в тайны физических явлений \n"
-						 "Завершён ежегодный съезд эрудированных школьников, мечтающих глубоко проникнуть в тайны физических явлений \n"
-						 "Завершён ежегодный съезд эрудированных школьников, мечтающих глубоко проникнуть в тайны физических явлений \n"
-						 "Завершён ежегодный съезд эрудированных школьников, мечтающих глубоко проникнуть в тайны физических явлений \n"
-						 "Завершён ежегодный \n"
-						 "Завершён ежегодный съезд эрудированных школьников, мечтающих глубоко проникнуть в тайны физических явлений \n"
-						 "Завершён ежегодный съезд эрудированных школьников, мечтающих глубоко проникнуть в тайны физических явлений \n"
-						 "Юный директор целиком сжевал весь объём продукции фундука (товара дефицитного и деликатесного)");
-	append(pangramms); // print pangramms 4 times
+	QString dummyText = ("0123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789\n"
+						 "1123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789\n"
+						 "2123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789\n"
+						 "3123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789\n"
+						 "4123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789\n"
+						 "5123456789 123456789\n"
+						 "6123456789 123456789\n"
+						 "7123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789\n"
+						 "8123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789\n"
+						 "9123456789 123456789 123456789 123456789 123456789 123456789\n"
+						 "0123456789 123456789 123456789 123456789 123456789 123456789\n"
+						 "1123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789\n"
+						 "2123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789\n"
+						 "3Завершён ежегодный\n"
+						 "\n"
+						 "5Завершён ежегодный съезд эрудированных школьников, мечтающих глубоко проникнуть в тайны физических явлений\n"
+						 "6Юный директор целиком сжевал весь объём продукции фундука (товара дефицитного и деликатесного)");
+	append(dummyText);
 	append("last row");
 
 	m_blinkingTimer = new QTimer(this); // таймер для мигания
 	connect(m_blinkingTimer, &QTimer::timeout, this, &TextEditPlus::SlotBlinkingTimer);
-	m_blinkingTimer->start(530);
+	m_blinkingTimer->start(630);
 }
 
 void TextEditPlus::paintEvent(QPaintEvent *event)
 {
 	QTextEdit::paintEvent(event);
 
-	auto rectSelectionInPixels = rectSelectionData.RectInPixels();
+	auto rectSelectionInPixels = rectSelection.RectInPixels();
 
 	if(isRectangularSelection)
 	{
-		if(rectSelectionData.isValid())
+		if(rectSelection.isValid())
 		{
 			QPainter painter(viewport());
 			painter.setPen(Qt::NoPen); // Без обводки
@@ -118,13 +117,13 @@ void TextEditPlus::ClearFilled()
 
 void TextEditPlus::mousePressEvent(QMouseEvent *event)
 {
-	rectSelectionData.Clear();
+	rectSelection.Clear();
 	isRectangularSelection = false;
 
 	if((event->modifiers() & Qt::AltModifier) && (event->buttons() & Qt::LeftButton))
 	{
 		FillngSpaceToMousePos(event->pos());
-		rectSelectionData.StartRectSelection(event->pos());
+		rectSelection.StartRectSelection(event->pos());
 		ClearFilled();
 
 		isRectangularSelection = true;
@@ -146,7 +145,7 @@ void TextEditPlus::mouseMoveEvent(QMouseEvent *event)
 	if (isRectangularSelection == true && (event->buttons() == Qt::LeftButton))
 	{
 		FillngSpaceToMousePos(event->pos());
-		rectSelectionData.ContinueRectSelection(event->pos());
+		rectSelection.ContinueRectSelection(event->pos());
 		ClearFilled();
 
 		viewport()->repaint();
@@ -209,7 +208,7 @@ void TextEditPlus::RectSelection(const QRect &charsAndLines)
 std::vector<QTextCursor> TextEditPlus::CursorsForRectSelection()
 {
 	std::vector<QTextCursor> cursors;
-	auto rect = rectSelectionData.RectInLetters();
+	auto rect = rectSelection.RectInLetters();
 	int cursorsCount = rect.height();
 
 	for(int i=1; i<=cursorsCount; i++)
@@ -322,4 +321,57 @@ void TextEditPlus::keyPressEvent(QKeyEvent *event)
 		//									cursorRect(cursors.back()).bottomRight());
 		update();
 	}
+void RectSlection::StartRectSelection(const QPoint &topLeft)
+{
+	m_startCursor = textEdit->cursorForPosition(topLeft);
+	auto endCursor = textEdit->cursorForPosition(topLeft);
+
+	m_rectInLetters.setCoords(m_startCursor.columnNumber(),
+							  LineOfCursor(m_startCursor),
+							  endCursor.columnNumber()-1,   // -1 нужно, иначе почему-то захватывает на 1 больше
+							  LineOfCursor(endCursor));
+
+	m_rectInPixels = {	textEdit->cursorRect(m_startCursor).topLeft(),
+						textEdit->cursorRect(endCursor).bottomRight()	};
+	m_rectInPixels = m_rectInPixels.normalized(); // Нормализуем прямоугольник
+}
+
+void RectSlection::ContinueRectSelection(const QPoint &bottomRight)
+{
+	auto endCursor = textEdit->cursorForPosition(bottomRight);
+
+	m_rectInLetters.setCoords(m_startCursor.columnNumber(),
+							  LineOfCursor(m_startCursor),
+							  endCursor.columnNumber()-1,	// -1 нужно, иначе почему-то захватывает на 1 больше
+							  LineOfCursor(endCursor));
+
+	m_rectInPixels.setBottomRight(textEdit->cursorRect(endCursor).bottomRight());
+	m_rectInPixels = m_rectInPixels.normalized(); // Нормализуем прямоугольник
+}
+
+void RectSlection::MoveRectSelection(const QPoint &newTopLeft, const QPoint &newBottomRight)
+{
+	m_rectInPixels = {	newTopLeft,
+						newBottomRight	};
+
+	m_startCursor = textEdit->cursorForPosition(m_rectInPixels.topLeft());
+	auto endCursor = textEdit->cursorForPosition(m_rectInPixels.bottomRight());
+
+	m_rectInLetters.setCoords(m_startCursor.columnNumber(),
+							  LineOfCursor(m_startCursor),
+							  endCursor.columnNumber()-1,	// -1 нужно, иначе почему-то захватывает на 1 больше
+							  LineOfCursor(endCursor));
+
+	m_rectInPixels = m_rectInPixels.normalized(); // Нормализуем прямоугольник
+}
+
+int RectSlection::LineOfCursor(const QTextCursor &cursor)
+{
+	return cursor.block().blockNumber();
+}
+
+QString RectSlection::RectToStr(const QRect &rect)
+{
+	QString str = "x: " + QSn(rect.x()) + " y: " + QSn(rect.y()) + " w: " + QSn(rect.width()) + " h: " + QSn(rect.height());
+	return str;
 }
