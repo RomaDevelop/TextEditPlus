@@ -17,30 +17,7 @@ void TextEditPlus::SlotToggleLineVisibility()
 
 void TextEditPlus::updateRectangle()
 {
-//	if (!cursors.empty())
-//	{
-//		int lastCursorOrdinal = cursors.size() - 1;
 
-//		//Pass second QPoint coordinate
-//		if (cursors.front().columnNumber() > cursors.back().columnNumber())
-//		{
-//			m_endPos = {cursorRect(cursors.front()).right() + 1, cursorRect(cursors[lastCursorOrdinal]).bottom() + 1}; // Обновляем конечную позицию для отрисовки
-//																													//прямоугольника. Правая грань - от первого курсора,
-//																													//нижняя - от последнего.
-//			qdbg << "First cursor column > last cursor column";
-//			qdbg << "Second before last cursor's bottom" << cursorRect(cursors[lastCursorOrdinal]).bottom() + 1 << "Rectangle y()" << m_endPos.y();
-//		}
-//		else
-//		{
-//			m_endPos = cursorRect(cursors[lastCursorOrdinal]).bottomRight();
-//			qdbg << "First cursor column <= last cursor column";
-//			qdbg << "Second before last cursor's bottom" << cursorRect(cursors[lastCursorOrdinal]).bottom() + 1 << "Rectangle y()" << m_endPos.y();
-
-//		}
-
-//		update(); // Перерисовываем виджет
-//	}
-//	else return;
 	m_endPos = cursorRect(m_endCursor).bottomRight();
 	update();
 
@@ -100,17 +77,7 @@ void TextEditPlus::paintEvent(QPaintEvent *event)
 			painter.drawLine(endCursorRect.center().x(), startCursorRect.top(), endCursorRect.center().x(), endCursorRect.bottom()/* + fontMetrics().height()*/);
 		else
 			painter.drawLine(endCursorRect.left(), endCursorRect.bottom() + 1, endCursorRect.left(), startCursorRect.top()/* + fontMetrics().height()*/);
-//		painter.drawLine(cursorRect(m_startCursor).topRight(), cursorRect(m_endCursor).bottomRight());
-//		if (!cursors.empty())
-//		{
-//			auto carretRectOrigin = cursorRect(cursors[0]);
-//			auto carretRectEnd = cursorRect(cursors[cursors.size() - 1]);
-//			if (cursors.front().columnNumber() <= cursors.back().columnNumber())
-//				painter.drawLine(carretRectEnd.left(), carretRectEnd.y() + fontMetrics().height(), carretRectEnd.left(), carretRectOrigin.y()); // Рисует вертикальную
-//																																				//линию.
-//			else
-//				painter.drawLine(carretRectOrigin.left(),  carretRectOrigin.y(), carretRectOrigin.left(), carretRectEnd.y());
-//		}
+
 	}
 
 
@@ -121,22 +88,17 @@ void TextEditPlus::spacing(QTextCursor& toBeginWith, QPoint mouseCoords)
 	//From whitespace
 	auto milepostCursorY = toBeginWith;
 	milepostCursorY.movePosition(QTextCursor::End, QTextCursor::MoveAnchor);
-	if (cursorRect(milepostCursorY).y() < mouseCoords.y())
-	while (cursorRect(milepostCursorY).y() < mouseCoords.y())
+	while (cursorRect(milepostCursorY).y() + cursorRect(milepostCursorY).height() < mouseCoords.y())
 	{
 		milepostCursorY.insertText("\nV");
-		qdbg <<"\tWhile loop vertical" << cursorRect(toBeginWith).y() << mouseCoords.y();
 	}
 
 	//to whitespace
 	auto milepostCursorX = toBeginWith;
 	milepostCursorX.movePosition(QTextCursor::EndOfLine, QTextCursor::MoveAnchor);
-	if (cursorRect(milepostCursorX).x() < mouseCoords.x())
 	while (cursorRect(milepostCursorX).x() < mouseCoords.x())
 	{
 		milepostCursorX.insertText("H");
-		qdbg <<"\tWhile loop horizontal" << cursorRect(toBeginWith).x() << mouseCoords.x();
-
 	}
 
 
@@ -144,40 +106,29 @@ void TextEditPlus::spacing(QTextCursor& toBeginWith, QPoint mouseCoords)
 
 void TextEditPlus::mousePressEvent(QMouseEvent *event)
 {
-	qdbg << "mousePressEvent";
 	RectSelection(QRect());
 	m_startPos = QPoint(); // Сбрасывает начальную позицию
 	m_endPos = QPoint();   // Сбрасывает конечную позицию
 
 	if (isRectangularSelection == false)
 	{
-		qdbg << "\tisRectangularSelection value 0" << isRectangularSelection;
 		if((event->modifiers() & Qt::AltModifier) && (event->buttons() & Qt::LeftButton))
 		{
 //			cursors.clear();
 			m_startCursor = cursorForPosition(event->pos());
 			//Making notes
-			m_charsAndLines.setCoords(m_startCursor.columnNumber(), cursorAtLine(m_startCursor), m_startCursor.columnNumber(), cursorAtLine(m_startCursor));
-
 			spacing(m_startCursor, event->pos());
-
-			qdbg << "Start cursor position" << m_startCursor.columnNumber() << cursorAtLine(m_startCursor);
-
-//			m_charsAndLines.setTop(lineOfCursor(m_startCursor));
-			qdbg << "\tisRectangularSelection value 1" << isRectangularSelection;
-
-
+			m_startCursor = cursorForPosition(event->pos());
+			m_charsAndLines.setCoords(m_startCursor.columnNumber(), cursorAtLine(m_startCursor), m_startCursor.columnNumber(), cursorAtLine(m_startCursor));
 
 			//Pass first coordinate
 			m_startPos = cursorRect(m_startCursor).topLeft(); // Запоминает начальную позицию для отрисовки прямоугольника.
 			isRectangularSelection = true;
-			qdbg << "\tisRectangularSelection value 2.5" << isRectangularSelection;
 			m_blinkingTimer->start(530);
 			return;
 		}
 		else
 		{
-			qdbg << "\tisRectangularSelection value 2" << isRectangularSelection;
 			m_visible = false;
 			m_blinkingTimer->stop();
 			setReadOnly(false);						// от включенного при валидном QRect'е
@@ -189,38 +140,30 @@ void TextEditPlus::mousePressEvent(QMouseEvent *event)
 	}
 	else
 	{
-//		qdbg << "\tisRectangularSelection value 3" << isRectangularSelection;
-//		isRectangularSelection = false;
-//		m_visible = false;
-//		m_blinkingTimer->stop();
-//		setReadOnly(false);						// от включенного при валидном QRect'е
-//		qdbg << "\tisRectangularSelection value 2" << isRectangularSelection;
-
-//		QTextEdit::mousePressEvent(event);
-//		return;
+		isRectangularSelection = false;
+		m_visible = false;
+		m_blinkingTimer->stop();
+		setReadOnly(false);						// от включенного при валидном QRect'е
+update();
+		QTextEdit::mousePressEvent(event);
+		return;
 	}
 
 }
 
 void TextEditPlus::mouseMoveEvent(QMouseEvent *event)
 {
-	qdbg <<"mouseMoveEvent";
 	if (isRectangularSelection == true && (event->buttons() == Qt::LeftButton))
 	{
 		m_endCursor = cursorForPosition(event->pos());
-//		cursors.push_back(m_endCursor);
+		spacing(m_endCursor, event->pos());
+		m_endCursor = cursorForPosition(event->pos());
 		m_charsAndLines.setCoords(m_startCursor.columnNumber(), cursorAtLine(m_startCursor), m_endCursor.columnNumber(), cursorAtLine(m_endCursor));
-		qdbg << "\tCursors size" << cursors.size();
-//		m_charsAndLines.setRight(m_endCursor.columnNumber());
-//		m_charsAndLines.setBottom(lineOfCursor(m_endCursor));
-
 		if(m_charsAndLines.isValid())
 		{
 			RectSelection(m_charsAndLines);
-//			updateRectangle();
 		}
 		m_endPos = cursorRect(m_endCursor).bottomRight();
-		spacing(m_endCursor, event->pos());
 
 		viewport()->repaint();
 	}
@@ -233,27 +176,9 @@ void TextEditPlus::mouseMoveEvent(QMouseEvent *event)
 
 void TextEditPlus::mouseReleaseEvent(QMouseEvent *event)
 {
-	qdbg << "mouseReleaseEvent";
-	if (isRectangularSelection == true && (event->button() == Qt::LeftButton))
-	{
-//		update(); // Перерисовываем виджет
-	}
+
 	QTextEdit::mouseReleaseEvent(event);
 }
-
-
-//void TextEditPlus::manyStrokesAsOne(QKeyEvent* event)
-//{
-
-//	cursorEditBlocker.beginEditBlock();
-//	switch (event->key())
-//	{
-//		case
-//	}
-
-//	for (auto& cursor:cursors) cursor.deleteChar();
-//	cursorEditBlocker.endEditBlock();
-//}
 
 int TextEditPlus::cursorAtLine(QTextCursor& toFind)
 {
@@ -280,8 +205,6 @@ void TextEditPlus::setCursorToRectsLeft(const QRect& charsAndLines, QTextCursor&
 
 void TextEditPlus::RectSelection(const QRect &charsAndLines)
 {
-	qdbg << "RectSelection( " + MyQString::AsDebug(charsAndLines) + ")";
-
 	QTextCharFormat formatNative;
 	formatNative.setBackground(Qt::white);
 	formatNative.setForeground(Qt::black);
@@ -311,6 +234,7 @@ void TextEditPlus::RectSelection(const QRect &charsAndLines)
 		curCursorRef.setPosition(0);
 
 		curCursorRef.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, charsAndLines.top() + i);
+
 		int startLinePos = curCursorRef.position();
 		curCursorRef.movePosition(QTextCursor::EndOfLine);
 		int lineLength = curCursorRef.position() - startLinePos;
@@ -322,37 +246,23 @@ void TextEditPlus::RectSelection(const QRect &charsAndLines)
 		{
 			setCursorToRectsLeft(charsAndLines, curCursorRef);
 			curCursorRef.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
-//			int spacing = rectToSelect.right() - endOfLineValue;
-//			for ( int i = 1; i <= spacing; i++)
-//			{
-//				curCursorRef.insertText(" ");
-//			}
-//			curCursorRef.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor, spacing);
-//			curCursorRef.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, spacing);
+
 		}
 		else
 		{
 			setCursorToRectsLeft(charsAndLines, curCursorRef);
 			curCursorRef.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, charsAndLines.width());
 		}
-
-//		curCursorRef.setCharFormat(format);
-		qdbg << '\t' << i << "cursor's column number" << curCursorRef.columnNumber();
 	}
 	cursorEditBlocker = textCursor();
-	qdbg << "\tRectangle left" << charsAndLines.left() << "Rectangle top" << charsAndLines.top()
-		 << "Rectangle right" << charsAndLines.right() + 1 << "Rectangle bottom" << charsAndLines.bottom() + 1;
-	qdbg << "\tCursors size" << cursors.size();
 }
 
 
 void TextEditPlus::keyPressEvent(QKeyEvent *event)
 {
-	qdbg << "keyPressEvent";
 	if (isRectangularSelection == false)
 	{
 		QTextEdit::keyPressEvent(event);
-		qdbg << "\tPierced";
 		return;
 	}
 	else
@@ -372,33 +282,22 @@ void TextEditPlus::keyPressEvent(QKeyEvent *event)
 			}
 			case Qt::Key_Z: // Обработка Ctrl+Z
 			{
-				if (event->modifiers() & Qt::ControlModifier) {
-					// Здесь вы можете вызвать метод отмены, если он у вас есть
-					// Например, если у вас есть метод undo() в QTextEdit:
+				if (event->modifiers() & Qt::ControlModifier)
+				{
 					QTextEdit::undo();
-					qdbg << "\tUndo action performed";
-					qdbg << "\t Right corner" << cursorForPosition(m_endPos).columnNumber();
 				}
 				else QTextEdit::keyPressEvent(event);
 				break;
 			}
 			default:
 			{
-//				if ((event->modifiers() & Qt::ControlModifier) || (event->modifiers() & Qt::AltModifier))
-//				{
-//					QTextEdit::keyPressEvent(event);
-//					qdbg << "\tDefault, with modifiers" << event->modifiers()<< "Unicode text" << event->text();
-
-//				}
 				if (event->key() == Qt::UpArrow || event->key() == Qt::LeftArrow || event->key() == Qt::DownArrow || event->key() == Qt::RightArrow ||
 						event->modifiers() & Qt::AltModifier || event->modifiers() & Qt::ControlModifier || event->modifiers() & Qt::ShiftModifier)
 				{
-					qdbg << "\tArrow or modifier" << event->key();
 					QTextEdit::keyPressEvent(event);
 				}
 				else
 				{
-					qdbg << "\tDefault else" << event->key();
 					for (auto& cursor:cursors)
 					{
 						cursor.insertText(event->text());

@@ -1,0 +1,84 @@
+Изначальная идея ф-ии spacing(). В ф-ии RectSelection()
+//			int spacing = rectToSelect.right() - endOfLineValue;
+//			for ( int i = 1; i <= spacing; i++)
+//			{
+//				curCursorRef.insertText(" ");
+//			}
+//			curCursorRef.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor, spacing);
+//			curCursorRef.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, spacing);
+	
+--------------------------------------------------	
+	
+	
+	else if (isRectangularSelection && event->buttons() & Qt::LeftButton)
+	{
+		m_visible = false;
+		isRectangularSelection = false;
+		setReadOnly(false);								// от включенного при валидном QRect'е
+
+		QTextEdit::mousePressEvent(event);
+		return;
+	}
+	
+--------------------------------------------------	
+	
+	В updateRectangle()
+{
+//	if (!cursors.empty())
+//	{
+//		int lastCursorOrdinal = cursors.size() - 1;
+
+//		//Pass second QPoint coordinate
+//		if (cursors.front().columnNumber() > cursors.back().columnNumber())
+//		{
+//			m_endPos = {cursorRect(cursors.front()).right() + 1, cursorRect(cursors[lastCursorOrdinal]).bottom() + 1}; // Обновляем конечную позицию для отрисовки
+//																													//прямоугольника. Правая грань - от первого курсора,
+//																													//нижняя - от последнего.
+//			qdbg << "First cursor column > last cursor column";
+//			qdbg << "Second before last cursor's bottom" << cursorRect(cursors[lastCursorOrdinal]).bottom() + 1 << "Rectangle y()" << m_endPos.y();
+//		}
+//		else
+//		{
+//			m_endPos = cursorRect(cursors[lastCursorOrdinal]).bottomRight();
+//			qdbg << "First cursor column <= last cursor column";
+//			qdbg << "Second before last cursor's bottom" << cursorRect(cursors[lastCursorOrdinal]).bottom() + 1 << "Rectangle y()" << m_endPos.y();
+
+//		}
+
+//		update(); // Перерисовываем виджет
+//	}
+//	else return;
+	
+--------------------------------------------------
+	
+	В TextEditPlus::mousePressEvent вместо ф-ии spacing()
+//			while (cursorRect(m_startCursor).y() < event->pos().y())
+//			{
+//				append("A");
+//				m_startCursor.movePosition(QTextCursor::Down,QTextCursor::MoveAnchor,1);
+			//				qdbg <<"\tWhile loop" << cursorRect(m_startCursor).y() << event->pos().y();
+//			}
+//			if (cursorRect(m_startCursor).x() < event->pos().x())
+//			{
+//				m_startCursor.movePosition(QTextCursor::EndOfLine, QTextCursor::MoveAnchor);
+//				while (cursorRect(m_startCursor).x() < event->pos().x())
+//				{
+//					m_startCursor.insertText("A");
+//					m_startCursor.movePosition(QTextCursor::NextCharacter,QTextCursor::MoveAnchor);
+//				}
+//			}
+
+--------------------------------------------------
+Из ф-ии updateRectangle. Отрисовка линии по курсорам.
+
+//		painter.drawLine(cursorRect(m_startCursor).topRight(), cursorRect(m_endCursor).bottomRight());
+//		if (!cursors.empty())
+//		{
+//			auto carretRectOrigin = cursorRect(cursors[0]);
+//			auto carretRectEnd = cursorRect(cursors[cursors.size() - 1]);
+//			if (cursors.front().columnNumber() <= cursors.back().columnNumber())
+//				painter.drawLine(carretRectEnd.left(), carretRectEnd.y() + fontMetrics().height(), carretRectEnd.left(), carretRectOrigin.y()); // Рисует вертикальную
+//																																				//линию.
+//			else
+//				painter.drawLine(carretRectOrigin.left(),  carretRectOrigin.y(), carretRectOrigin.left(), carretRectEnd.y());
+//		}
