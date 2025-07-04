@@ -270,52 +270,27 @@ void TextEditPlus::keyPressEvent(QKeyEvent *event)
 		QTextEdit::keyPressEvent(event);
 		return;
 	}
+
+	auto key = event->key();
+
+	cursorEditBlocker = textCursor();
+	cursorEditBlocker.beginEditBlock();
+
+	static std::set<Qt::Key> arrows { Qt::Key_Up, Qt::Key_Down, Qt::Key_Left, Qt::Key_Right };
+
+	if(key == Qt::Key_Backspace) rectSelection.BackspacePressed();
+	else if(key == Qt::Key_Delete) rectSelection.DelPressed();
+	else if(key == Qt::Key_Z && event->modifiers() & Qt::ControlModifier) QTextEdit::undo();
+	else if(arrows.count(Qt::Key(key))) qdbg << "стрелка!!!";
 	else
 	{
-		cursorEditBlocker.beginEditBlock();
+		qdbg << "необработанный случай";
+	}
 
-		auto cursors = CursorsForRectSelection();
+	cursorEditBlocker.endEditBlock();
+	update();
+}
 
-		switch (event->key())
-		{
-			case Qt::Key_Backspace:
-			{
-				for (auto& cursor:cursors) cursor.deletePreviousChar();
-				break;
-			}
-			case Qt::Key_Delete:
-			{
-				for (auto& cursor:cursors) cursor.deleteChar();
-				break;
-			}
-			case Qt::Key_Z: // Обработка Ctrl+Z
-			{
-				if (event->modifiers() & Qt::ControlModifier)
-				{
-					QTextEdit::undo();
-				}
-				else QTextEdit::keyPressEvent(event);
-				break;
-			}
-			default:
-			{
-				if (event->key() == Qt::UpArrow || event->key() == Qt::LeftArrow || event->key() == Qt::DownArrow
-						|| event->key() == Qt::RightArrow ||
-						event->modifiers() & Qt::AltModifier || event->modifiers() & Qt::ControlModifier
-						|| event->modifiers() & Qt::ShiftModifier)
-				{
-					QTextEdit::keyPressEvent(event);
-				}
-				else
-				{
-					//for (auto& cursor:cursors)
-					{
-						//cursor.insertText(event->text());
-					}
-				}
-			}
-		}
-		cursorEditBlocker.endEditBlock();
 RectSlection::RectSlection(QTextEdit *textEdit):
 	textEdit{textEdit}
 {
