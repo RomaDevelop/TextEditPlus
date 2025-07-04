@@ -1,6 +1,7 @@
 #include <cstdlib> // для rand() и srand()
 #include <ctime>   // для time()
 
+#include <QApplication>
 #include <QBoxLayout>
 #include <QTextEdit>
 #include <QPushButton>
@@ -20,6 +21,7 @@ WidgetPrintStructureObjects::WidgetPrintStructureObjects(QWidget *parent)
     : QWidget(parent)
 {
     resize(800,600);
+
 //    Declarations
     QVBoxLayout* VerticalLayout = new QVBoxLayout;
 	auto hloTop = new QHBoxLayout();
@@ -34,8 +36,8 @@ WidgetPrintStructureObjects::WidgetPrintStructureObjects(QWidget *parent)
     QPushButton* btnFind = new QPushButton("Найти");
     checkbox = new QCheckBox("Учитывать регистр");
 
-
 	VerticalLayout->addLayout(hloTop);
+
 	auto btnRect = new QPushButton(" rect 3, 3, 4, 4 ");
 	hloTop->addWidget(btnRect);
 	connect(btnRect, &QPushButton::clicked, [this](){
@@ -74,6 +76,13 @@ WidgetPrintStructureObjects::WidgetPrintStructureObjects(QWidget *parent)
 		}
 	});
 
+	auto btn = new QPushButton(" ClearContent ");
+	hloTop->addWidget(btn);
+	connect(btn, &QPushButton::clicked, [this](){
+		txtEditPlus->rectSelection.ClearContent();
+	});
+
+
 	hloTop->addStretch();
 
     VerticalLayout->addWidget(txtEditPlus);
@@ -91,9 +100,36 @@ WidgetPrintStructureObjects::WidgetPrintStructureObjects(QWidget *parent)
     connect(btnForth, &QPushButton::clicked, this, &WidgetPrintStructureObjects::SlotBtnForthClicked);
     connect(btnFind, &QPushButton::clicked, this, &WidgetPrintStructureObjects::SlotBtnFindClicked);
 
-	//	Rectangular selection
-//		txtEditPlus->RectSelection();
+	monitor = new WidgetMonitor;
+	monitor->timer1 = new QTimer(this);
+	monitor->timer1->start(100);
+	connect(monitor->timer1, &QTimer::timeout, this, [this](){
+		monitor->textEdit1->clear();
+		monitor->textEdit1->append("RectInLetters: " + RectSlection::RectToStr(txtEditPlus->rectSelection.RectInLetters()));
+		monitor->textEdit1->append("RectInPixels : " + RectSlection::RectToStr(txtEditPlus->rectSelection.RectInPixels()));
 
+		QTextCharFormat format;
+		format.setForeground(Qt::blue);
+		auto rect = txtEditPlus->rectSelection.RectInLetters();
+		for(int i=0; i<rect.height(); i++)
+		{
+			auto block = txtEditPlus->document()->findBlockByLineNumber(rect.top()+i);
+			if(!block.isValid()) break;
+
+			int lineLenght = block.length()-1;
+
+			if(lineLenght < rect.left()) continue;
+
+			QTextCursor cursor(block);
+			cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::MoveAnchor, rect.left());
+			if(lineLenght >= rect.left() + rect.width())
+				cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, rect.width());
+			else cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+			cursor.setCharFormat(format);
+		}
+	});
+
+	monitor->show();
 }
 
 WidgetPrintStructureObjects::~WidgetPrintStructureObjects()
@@ -101,10 +137,15 @@ WidgetPrintStructureObjects::~WidgetPrintStructureObjects()
 
 }
 
+void WidgetPrintStructureObjects::closeEvent(QCloseEvent *event) {
+	monitor->close();
+	event->accept();
+}
+
 void WidgetPrintStructureObjects::SlotBtnFindClicked()
 {
-    prompt = lineEdit->text();
-    length = prompt.size();
+	prompt = lineEdit->text();
+	length = prompt.size();
 
     // Definitions and set up
     QString source =    txtEditPlus -> toPlainText(); // QTextEdit -> QTextDocument^ method

@@ -8,6 +8,8 @@
 
 #include "textEditPlus.h"
 
+#include "WidgetMonitor.h"
+
 class WidgetPrintStructureObjects : public QWidget
 {
     Q_OBJECT
@@ -20,6 +22,7 @@ public:
     TextEditPlus* txtEditPlus;
     QCheckBox* checkbox;
     ~WidgetPrintStructureObjects();
+	void closeEvent (QCloseEvent *event) override;
 private:
     QLineEdit* lineEdit;    // Level-up
     QList <qsizetype> array;
@@ -27,5 +30,6 @@ private:
     void SlotBtnBackClicked();
     void SlotBtnForthClicked();
 
+	WidgetMonitor *monitor;
 };
 #endif // WIDGET_H

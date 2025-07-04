@@ -11,7 +11,7 @@
 
 #include "MyQShortings.h"
 
-class RectSlectionData
+class RectSlection
 {
 	QTextEdit *textEdit;
 
@@ -21,7 +21,7 @@ class RectSlectionData
 	QRect m_rectInPixels;
 
 public:
-	RectSlectionData(QTextEdit *textEdit): textEdit{textEdit} {}
+	RectSlection(QTextEdit *textEdit);
 
 	void Clear()
 	{
@@ -35,17 +35,12 @@ public:
 	QRect RectInLetters() { return m_rectInLetters; }
 
 
-		// Получаем номер первой строки блока. Метод QTextBlock::firstLineNumber() начинает счёт с единицы.
-		int firstLineNumber = block.firstLineNumber() - 1;
+	void StartRectSelection(const QPoint &topLeft);
+	void ContinueRectSelection(const QPoint &bottomRight);
+	void MoveRectSelection(const QPoint &newTopLeft, const QPoint &newBottomRight);
 
-		// Получаем позицию курсора в блоке
-		int cursorPositionInBlock = cursor.positionInBlock();
-
-		// Вычисляем номер строки в блоке
-		int lineInBlock = 0;
-		for (int i = 0; i < cursorPositionInBlock; ++i) { if (block.text()[i] == '\n') { lineInBlock++;} }
-		return firstLineNumber + lineInBlock;
-	}
+	static int LineOfCursor(const QTextCursor& cursor);
+	static QString RectToStr(const QRect &rect);
 };
 
 class TextEditPlus : public QTextEdit
