@@ -30,11 +30,10 @@ class TextEditPlus : public QTextEdit
 
 	QPoint m_startPos; // Начальная позиция в пикселах.
 	QPoint m_endPos;   // Конечная позиция в пикселах.
-	QRect m_charsAndLines;				// the amount of characters and lines of text, not pixel height and width.
+	QRect m_rectInLetters;				// the amount of characters and lines of text, not pixel height and width.
 	QRect m_rectInPixels;
 
-	void updateRectangle();
-	void spacing(QTextCursor& toBeginWith, QPoint mouseCoords);
+	void FillngSpace(QPoint mouseCoords);
 private slots:
 	void SlotToggleLineVisibility();
 public:

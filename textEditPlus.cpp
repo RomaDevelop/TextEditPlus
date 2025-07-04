@@ -6,21 +6,11 @@
 #include "MyQString.h"
 #include "qdebug.h"
 
-
-
 void TextEditPlus::SlotToggleLineVisibility()
 {
 	m_visible = !m_visible; // Переключаем видимость линии
-	if(!m_charsAndLines.isValid()) m_visible = false;
+	if(!m_rectInLetters.isValid()) m_visible = false;
 	viewport()->update();
-}
-
-void TextEditPlus::updateRectangle()
-{
-
-	m_endPos = cursorRect(m_endCursor).bottomRight();
-	update();
-
 }
 
 TextEditPlus::TextEditPlus(QTextEdit* parent): QTextEdit(parent), m_visible(false) // Object's constructor.
@@ -74,19 +64,22 @@ void TextEditPlus::paintEvent(QPaintEvent *event)
 		auto startCursorRect = cursorRect(m_startCursor);
 		auto endCursorRect = cursorRect(m_endCursor);
 		if(startCursorRect.center().x() <= endCursorRect.center().x())
-			painter.drawLine(endCursorRect.center().x(), startCursorRect.top(), endCursorRect.center().x(), endCursorRect.bottom()/* + fontMetrics().height()*/);
+			painter.drawLine(endCursorRect.center().x(),
+							 startCursorRect.top(),
+							 endCursorRect.center().x(),
+							 endCursorRect.bottom()/* + fontMetrics().height()*/);
 		else
-			painter.drawLine(endCursorRect.left(), endCursorRect.bottom() + 1, endCursorRect.left(), startCursorRect.top()/* + fontMetrics().height()*/);
-
+			painter.drawLine(endCursorRect.left(),
+							 endCursorRect.bottom() + 1,
+							 endCursorRect.left(),
+							 startCursorRect.top()/* + fontMetrics().height()*/);
 	}
-
-
 }
 
-void TextEditPlus::spacing(QTextCursor& toBeginWith, QPoint mouseCoords)
+void TextEditPlus::FillngSpace(QPoint mouseCoords)
 {
 	//From whitespace
-	auto milepostCursorY = toBeginWith;
+	auto milepostCursorY = cursorForPosition(mouseCoords);
 	milepostCursorY.movePosition(QTextCursor::End, QTextCursor::MoveAnchor);
 	while (cursorRect(milepostCursorY).y() + cursorRect(milepostCursorY).height() < mouseCoords.y())
 	{
@@ -94,7 +87,7 @@ void TextEditPlus::spacing(QTextCursor& toBeginWith, QPoint mouseCoords)
 	}
 
 	//to whitespace
-	auto milepostCursorX = toBeginWith;
+	auto milepostCursorX = cursorForPosition(mouseCoords);
 	milepostCursorX.movePosition(QTextCursor::EndOfLine, QTextCursor::MoveAnchor);
 	while (cursorRect(milepostCursorX).x() < mouseCoords.x())
 	{
@@ -114,12 +107,12 @@ void TextEditPlus::mousePressEvent(QMouseEvent *event)
 	{
 		if((event->modifiers() & Qt::AltModifier) && (event->buttons() & Qt::LeftButton))
 		{
-//			cursors.clear();
+			FillngSpace(event->pos());
 			m_startCursor = cursorForPosition(event->pos());
-			//Making notes
-			spacing(m_startCursor, event->pos());
-			m_startCursor = cursorForPosition(event->pos());
-			m_charsAndLines.setCoords(m_startCursor.columnNumber(), cursorAtLine(m_startCursor), m_startCursor.columnNumber(), cursorAtLine(m_startCursor));
+			m_rectInLetters.setCoords(m_startCursor.columnNumber(),
+									  cursorAtLine(m_startCursor),
+									  m_startCursor.columnNumber(),
+									  cursorAtLine(m_startCursor));
 
 			//Pass first coordinate
 			m_startPos = cursorRect(m_startCursor).topLeft(); // Запоминает начальную позицию для отрисовки прямоугольника.
@@ -155,13 +148,15 @@ void TextEditPlus::mouseMoveEvent(QMouseEvent *event)
 {
 	if (isRectangularSelection == true && (event->buttons() == Qt::LeftButton))
 	{
+		FillngSpace(event->pos());
 		m_endCursor = cursorForPosition(event->pos());
-		spacing(m_endCursor, event->pos());
-		m_endCursor = cursorForPosition(event->pos());
-		m_charsAndLines.setCoords(m_startCursor.columnNumber(), cursorAtLine(m_startCursor), m_endCursor.columnNumber(), cursorAtLine(m_endCursor));
-		if(m_charsAndLines.isValid())
+		m_rectInLetters.setCoords(m_startCursor.columnNumber(),
+								  cursorAtLine(m_startCursor),
+								  m_endCursor.columnNumber(),
+								  cursorAtLine(m_endCursor));
+		if(m_rectInLetters.isValid())
 		{
-			RectSelection(m_charsAndLines);
+			RectSelection(m_rectInLetters);
 		}
 		m_endPos = cursorRect(m_endCursor).bottomRight();
 
@@ -306,47 +301,8 @@ void TextEditPlus::keyPressEvent(QKeyEvent *event)
 			}
 		}
 		cursorEditBlocker.endEditBlock();
-		updateRectangle();
+
+		m_endPos = cursorRect(cursors.back()).bottomRight();
+		update();
 	}
 }
-
-
-//	//    qDebug() << "Initial cursor Y coordinate: " << widgetsCursor.hotSpot().y();
-//	//    qDebug() << "Y coordinate from the event: " << event->globalY();
-//	if((event->modifiers() & Qt::AltModifier) && (event->buttons() & Qt::LeftButton))
-//	{
-//		QTextCursor dupeTextEditsCursor = textCursor();
-
-//		// What compare to what?
-//		if(event->globalY() < widgetsCursor.hotSpot().y()) //event is emmited lower than where widgetsCursor was because (0,0) is at the upper-left corner of the screen.
-//        {
-//            dupeTextEditsCursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor);
-//        }
-//        else if(event->globalY() > widgetsCursor.hotSpot().y()) //event is emmited higher than where widgetsCursor was
-//        {
-//            dupeTextEditsCursor.movePosition(QTextCursor::Up, QTextCursor::MoveAnchor);
-//        }
-//        setTextCursor(dupeTextEditsCursor);
-//    }
-//}
-
-//void ColumnMode::activate(QMouseEvent* initEvent, QMouseEvent *nextEvent)
-//{
-//    if (initEvent->modifiers() & Qt::AltModifier & initEvent->buttons() & Qt::LeftButton)
-//    {
-//        QTextCursor dupeTextEditsCursor = textCursor();
-//        if((initEvent->y() > nextEvent->y())) //initEvent is emmited lower than nextEvent, because (0,0) is at the upper-left corner of the widget.
-//        {
-//            moveCursor(QTextCursor::Up, QTextCursor::MoveAnchor);
-//            dupeTextEditsCursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor);
-//            setTextCursor(dupeTextEditsCursor);
-//        }
-//        else if(initEvent->y() < nextEvent->y()) //initEvent is emmited higher than nextEvent.
-//        {
-//            moveCursor(QTextCursor::Down, QTextCursor::MoveAnchor);
-//            dupeTextEditsCursor.movePosition(QTextCursor::Up, QTextCursor::MoveAnchor);
-//            setTextCursor(dupeTextEditsCursor);
-//        }
-//    }
-
-//}
