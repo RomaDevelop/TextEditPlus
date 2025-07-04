@@ -53,26 +53,22 @@ void TextEditPlus::paintEvent(QPaintEvent *event)
 		QPainter painter(viewport());
 		painter.setPen(Qt::NoPen); // Без обводки
 		painter.setBrush(QColor(163, 163, 163, 122)); // Полупрозрачный серый цвет
+
 		m_rectInPixels = {m_startPos, m_endPos};
 		m_rectInPixels = m_rectInPixels.normalized(); // Нормализуем прямоугольник
+
 		painter.drawRect(m_rectInPixels); // Рисуем прямоугольник
 	}
+
 	if(m_visible)
 	{
 		QPainter painter(viewport());
 		painter.setPen(Qt::black); // Цвет курсора
-		auto startCursorRect = cursorRect(m_startCursor);
-		auto endCursorRect = cursorRect(m_endCursor);
-		if(startCursorRect.center().x() <= endCursorRect.center().x())
-			painter.drawLine(endCursorRect.center().x(),
-							 startCursorRect.top(),
-							 endCursorRect.center().x(),
-							 endCursorRect.bottom()/* + fontMetrics().height()*/);
-		else
-			painter.drawLine(endCursorRect.left(),
-							 endCursorRect.bottom() + 1,
-							 endCursorRect.left(),
-							 startCursorRect.top()/* + fontMetrics().height()*/);
+
+		painter.drawLine(m_rectInPixels.x()+m_rectInPixels.width(),
+						 m_rectInPixels.top(),
+						 m_rectInPixels.x()+m_rectInPixels.width(),
+						 m_rectInPixels.bottom());
 	}
 }
 
@@ -109,13 +105,19 @@ void TextEditPlus::mousePressEvent(QMouseEvent *event)
 		{
 			FillngSpace(event->pos());
 			m_startCursor = cursorForPosition(event->pos());
+			m_endCursor = cursorForPosition(event->pos());
 			m_rectInLetters.setCoords(m_startCursor.columnNumber(),
 									  cursorAtLine(m_startCursor),
-									  m_startCursor.columnNumber(),
-									  cursorAtLine(m_startCursor));
+									  m_endCursor.columnNumber(),
+									  cursorAtLine(m_endCursor));
 
 			//Pass first coordinate
 			m_startPos = cursorRect(m_startCursor).topLeft(); // Запоминает начальную позицию для отрисовки прямоугольника.
+			m_endPos = cursorRect(m_endCursor).bottomRight();
+
+			m_rectInPixels = {m_startPos, m_endPos};
+			m_rectInPixels = m_rectInPixels.normalized(); // Нормализуем прямоугольник
+
 			isRectangularSelection = true;
 			m_blinkingTimer->start(530);
 			return;
@@ -154,6 +156,10 @@ void TextEditPlus::mouseMoveEvent(QMouseEvent *event)
 								  cursorAtLine(m_startCursor),
 								  m_endCursor.columnNumber(),
 								  cursorAtLine(m_endCursor));
+
+		m_rectInPixels = {m_startPos, m_endPos};
+		m_rectInPixels = m_rectInPixels.normalized(); // Нормализуем прямоугольник
+
 		if(m_rectInLetters.isValid())
 		{
 			RectSelection(m_rectInLetters);
