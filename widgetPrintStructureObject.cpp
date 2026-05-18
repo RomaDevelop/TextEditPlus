@@ -194,11 +194,11 @@ void WidgetPrintStructureObjects::SlotBtnBackClicked()
     if (array.isEmpty()) return;
     if (cursPos <= array.first())
     {
-       index = array.size() - 1; // array.size - 1 to convert from the number of list's items to items' ordinals
+       index = static_cast<int>(array.size()) - 1; // array.size - 1 to convert from the number of list's items to items' ordinals
     }
     else
     {
-        for(int i = array.size() - 1; i >= 0; i--) // see comment on line 109
+        for(int i = static_cast<int>(array.size()) - 1; i >= 0; i--) // see comment on line 109
         if(cursPos > array[i])
         {
             index = i;
